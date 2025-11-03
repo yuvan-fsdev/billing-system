@@ -5,6 +5,7 @@ from pathlib import Path
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 from app import models  # noqa: F401  # ensure model metadata is imported
@@ -16,7 +17,10 @@ from app.repositories.purchases import PurchaseRepository
 
 app = FastAPI(title="Billing System API")
 
-templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent / "templates"))
+base_path = Path(__file__).resolve().parent
+templates = Jinja2Templates(directory=str(base_path / "templates"))
+
+app.mount("/static", StaticFiles(directory=str(base_path / "static")), name="static")
 
 
 @app.on_event("startup")
@@ -53,4 +57,4 @@ def invoice_page(
     if purchase is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found")
     summary = serialize_purchase(purchase)
-    return templates.TemplateResponse("page2.html", {"request": request, "invoice": summary.dict()})
+    return templates.TemplateResponse("page2.html", {"request": request, "invoice": summary.model_dump()})

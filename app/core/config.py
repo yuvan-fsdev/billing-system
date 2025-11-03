@@ -1,24 +1,29 @@
 """Application configuration loaded from environment variables."""
 
-from functools import lru_cache
-from pydantic import BaseSettings, Field
+from typing import Optional
+
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """Application settings sourced from environment variables."""
 
-    database_url: str = Field(..., env="DATABASE_URL")
+    DATABASE_URL: str = Field(..., alias="DATABASE_URL")
+    ENV: str = "dev"
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    SMTP_HOST: Optional[str] = Field(default=None, alias="SMTP_HOST")
+    SMTP_PORT: int = Field(default=587, alias="SMTP_PORT")
+    SMTP_USERNAME: Optional[str] = Field(default=None, alias="SMTP_USERNAME")
+    SMTP_PASSWORD: Optional[str] = Field(default=None, alias="SMTP_PASSWORD")
+    SMTP_FROM_EMAIL: Optional[str] = Field(default=None, alias="SMTP_FROM_EMAIL")
+    SMTP_USE_TLS: bool = Field(default=True, alias="SMTP_USE_TLS")
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
 
-@lru_cache()
-def get_settings() -> Settings:
-    """Return a cached Settings instance."""
-    return Settings()
-
-
-settings = get_settings()
+settings = Settings()

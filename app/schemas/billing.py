@@ -6,7 +6,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Dict, List
 
-from pydantic import BaseModel, EmailStr, Field, condecimal, conint, validator
+from pydantic import BaseModel, EmailStr, Field, condecimal, conint, field_validator
 
 from app.schemas.common import DecimalModel
 
@@ -24,14 +24,18 @@ class DenominationIn(BaseModel):
     counts: Dict[int, int] = Field(default_factory=dict)
     paid_amount: condecimal(max_digits=14, decimal_places=2)
 
-    @validator("counts", pre=True)
-    def convert_keys(cls, value: Dict[int | str, int]) -> Dict[int, int]:
+    @field_validator("counts", mode="before")
+    @classmethod
+    def convert_keys(cls, value: Dict[int | str, int] | None) -> Dict[int, int]:
+        if value is None:
+            return {}
         converted: Dict[int, int] = {}
         for key, count in value.items():
             converted[int(key)] = int(count)
         return converted
 
-    @validator("counts")
+    @field_validator("counts")
+    @classmethod
     def validate_counts(cls, value: Dict[int, int]) -> Dict[int, int]:
         for denom, count in value.items():
             if denom <= 0 or count < 0:

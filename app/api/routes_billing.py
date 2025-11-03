@@ -58,28 +58,32 @@ def generate_bill(
     purchase_id: int | None = None
 
     try:
-        with db.begin():
-            customer = customer_repo.get_or_create_by_email(payload.customer_email)
+        customer = customer_repo.get_or_create_by_email(payload.customer_email)
 
-            purchase = purchase_repo.create_purchase(
-                customer=customer,
-                bill=bill,
-                paid_amount=paid_amount,
-                payment_map=payment_map,
-                change_map=change_map,
-                change_remainder=change_remainder,
-            )
-            purchase_id = purchase.id
+        purchase = purchase_repo.create_purchase(
+            customer=customer,
+            bill=bill,
+            paid_amount=paid_amount,
+            payment_map=payment_map,
+            change_map=change_map,
+            change_remainder=change_remainder,
+        )
+        purchase_id = purchase.id
 
-            for loaded_line, computed_line in zip(loaded_lines, bill.lines):
-                product_repo.decrement_stock(loaded_line.product, computed_line.quantity)
+        for loaded_line, computed_line in zip(loaded_lines, bill.lines):
+            product_repo.decrement_stock(loaded_line.product, computed_line.quantity)
 
-            mutate_denomination_stocks(db, payment_map, change_map)
+        mutate_denomination_stocks(db, payment_map, change_map)
+        db.commit()
     except ValueError as exc:
+        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         ) from exc
+    except Exception:
+        db.rollback()
+        raise
 
     if purchase_id is None:
         raise HTTPException(status_code=500, detail="Failed to create purchase.")
@@ -94,7 +98,7 @@ def generate_bill(
         send_invoice_email,
         purchase_id=purchase.id,
         recipient=summary.customer_email,
-        summary=summary.dict(),
+        summary=summary.model_dump(),
     )
 
     return summary

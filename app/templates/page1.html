@@ -2,17 +2,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Billing Form</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 2rem; }
-        h1 { color: #333; }
-        .info { margin-bottom: 1rem; color: #666; }
-        a.button { display: inline-block; padding: 0.5rem 1rem; background: #2563eb; color: white; text-decoration: none; border-radius: 4px; }
-    </style>
+    <title>Billing Console</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/styles.css') }}">
 </head>
 <body>
-<h1>Billing System</h1>
-<p class="info">Use the API endpoints to generate bills. This page is a placeholder for a richer UI.</p>
-<p><a class="button" href="/docs">Open API Documentation</a></p>
+<div class="app-shell">
+    <header>
+        <div>
+            <h1>Billing Console</h1>
+            <div class="meta">Generate invoices, manage change, and browse history.</div>
+        </div>
+        <div>
+            <a class="tag" href="/docs" target="_blank">API Docs</a>
+        </div>
+    </header>
+
+    <section class="card">
+        <h2>Create Invoice</h2>
+        <form id="billing-form" class="row" novalidate>
+            <div class="status" aria-live="polite"></div>
+            <div class="row two">
+                <div>
+                    <label for="customer-email">Customer Email</label>
+                    <input type="email" id="customer-email" placeholder="customer@example.com" required>
+                </div>
+                <div>
+                    <label for="paid-amount">Paid Amount (₹)</label>
+                    <input type="number" step="0.01" id="paid-amount" placeholder="e.g. 1000.00" required>
+                </div>
+            </div>
+
+            <div>
+                <label>Line Items</label>
+                <table id="product-table">
+                    <thead>
+                    <tr>
+                        <th>Product Code</th>
+                        <th>Quantity</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <button type="button" id="add-line-item" class="secondary" style="margin-top: 0.75rem;">Add Item</button>
+            </div>
+
+            <div>
+                <label>Denomination Counts</label>
+                <div id="denomination-grid" class="denomination-grid"></div>
+            </div>
+
+            <div>
+                <button type="submit" class="primary">Generate Invoice</button>
+            </div>
+        </form>
+
+        <div id="invoice-output"></div>
+    </section>
+
+    <section class="card">
+        <h2>Purchase History</h2>
+        <form id="history-form" class="row" novalidate>
+            <div class="status" aria-live="polite"></div>
+            <div class="row two">
+                <div>
+                    <label for="history-email">Customer Email</label>
+                    <input type="email" id="history-email" placeholder="customer@example.com">
+                </div>
+                <div class="row">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="secondary">Fetch History</button>
+                </div>
+            </div>
+        </form>
+
+        <div id="history-results" class="history-results"></div>
+    </section>
+</div>
+
+<script src="{{ url_for('static', path='js/main.js') }}"></script>
 </body>
 </html>
