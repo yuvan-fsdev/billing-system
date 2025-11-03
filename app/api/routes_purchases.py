@@ -15,19 +15,6 @@ from app.schemas.billing import PurchaseListItemOut, PurchaseSummaryOut
 router = APIRouter(prefix="/api/purchases", tags=["purchases"])
 
 
-@router.get("/{purchase_id}", response_model=PurchaseSummaryOut)
-def get_purchase(
-    purchase_id: int,
-    db: Session = Depends(get_db),
-) -> PurchaseSummaryOut:
-    """Fetch a purchase invoice by ID."""
-    repo = PurchaseRepository(db)
-    purchase = repo.get_purchase_with_details(purchase_id)
-    if purchase is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Purchase not found")
-    return serialize_purchase(purchase)
-
-
 @router.get("/history", response_model=List[PurchaseListItemOut])
 def list_purchase_history(
     email: EmailStr = Query(..., description="Customer email"),
@@ -44,3 +31,16 @@ def list_purchase_history(
         )
         for purchase in purchases
     ]
+
+
+@router.get("/{purchase_id}", response_model=PurchaseSummaryOut)
+def get_purchase(
+    purchase_id: int,
+    db: Session = Depends(get_db),
+) -> PurchaseSummaryOut:
+    """Fetch a purchase invoice by ID."""
+    repo = PurchaseRepository(db)
+    purchase = repo.get_purchase_with_details(purchase_id)
+    if purchase is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Purchase not found")
+    return serialize_purchase(purchase)
