@@ -239,6 +239,7 @@ async function handleHistory(event) {
 function initProductRows(table) {
     const tbody = table.querySelector("tbody");
     const addButton = document.getElementById("add-line-item");
+    const resetButton = document.getElementById("reset-form");
     let rowCount = 0;
 
     const addRow = () => {
@@ -252,6 +253,12 @@ function initProductRows(table) {
             addRow();
         });
     }
+
+    const clearRows = () => {
+        tbody.innerHTML = "";
+        rowCount = 0;
+        addRow();
+    };
 
     tbody.addEventListener("click", (event) => {
         if (event.target.classList.contains("remove-row")) {
@@ -269,6 +276,19 @@ function initProductRows(table) {
             row.remove();
         }
     });
+
+    if (resetButton) {
+        resetButton.addEventListener("click", () => {
+            const form = document.getElementById("billing-form");
+            form.reset();
+            clearRows();
+            document.getElementById("invoice-output").innerHTML = "";
+            const statusElement = form.querySelector(".status");
+            if (statusElement) {
+                showStatus(statusElement, "", "success");
+            }
+        });
+    }
 
     addRow();
 }
